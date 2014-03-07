@@ -1,0 +1,6 @@
+check process scribRest with pidfile /var/lock/scribrest.pid
+   group scrib
+   start program = "/etc/init.d/scribrestfull start"
+   stop  program = "/etc/init.d/scribrestfull stop"
+   if failed host 127.0.0.1 port 4242 then restart
+   if 5 restarts within 5 cycles then timeout

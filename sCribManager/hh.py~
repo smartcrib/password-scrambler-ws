@@ -1,0 +1,194 @@
+#!/usr/bin/env python
+"""helper.py: an example code for using command ENSCRAMBLE
+    - project sCribManager - Python."""
+
+'''
+@author: Dan Cvrcek, George French
+@copyright: Copyright 2013-14, Smart Crib Ltd
+@credits: George French, Dan Cvrcek
+@license: GPL version 3 (e.g., https://www.gnu.org/copyleft/gpl.html)
+@version: 1.0
+@email: info@s-crib.com
+@status: Test
+'''
+from Crypto.Cipher import AES
+import threading
+import binascii
+import time
+import sys
+import urllib2
+#import sys
+
+
+class Client(object):
+
+    _BLOCK_SIZE = 16
+    _READ_TIMEOUT = 2 # in seconds
+    space = 1
+
+    def _encrypt(self, message, passphrase):
+        # passphrase MUST be 16, 24 or 32 bytes long, how can I do that ?
+        IV =  "\x00" * self._BLOCK_SIZE
+        while (len(passphrase)<32):
+            passphrase = passphrase + "\x00"
+
+        aes = AES.new(passphrase, AES.MODE_CBC, IV)
+        return aes.encrypt(message)
+
+    def _decrypt(self, encrypted, passphrase):
+        IV = "\x00" * self._BLOCK_SIZE
+        while (len(passphrase)<32):
+            passphrase = passphrase + "\x00"
+            
+        aes = AES.new(passphrase, AES.MODE_CBC, IV)
+        result = aes.decrypt(encrypted)
+        padding = ord(result[len(result)-1])
+        length = len(result)
+        for index in range(length-padding,length):
+            if (ord(result[index]) != padding):
+                return ""
+        padding = length - padding # get data bytes instead of padding length
+        result = result[:padding]
+        return result
+        
+
+    def ENSCRAMBLE(self,passphrase, serverCounter, password, saltLength=0, salt="", name=0):
+        # create the encrypted packet
+        if len(serverCounter)>10:
+            print("Server counter can be only 10 characters long - ENSCRAMBLE")
+            return "ERR109"
+            
+        message = serverCounter.ljust(10) + " " + password.strip() + " "
+        if not isinstance(saltLength, (int)):
+            print("salt length must be an INT")
+            return "ERR107"
+        if saltLength<0 or saltLength > 16: 
+            print("salt length must be between 0 and 16 not: %s" % saltLength)
+            return "ERR106"
+        if salt is None:
+            salt = ""
+        if (saltLength != len(salt)) and (len(salt)>0):
+            print("salt is not of expected length" % saltLength)
+            return "ERR105"
+
+        message = message + "%02d"%saltLength
+        if len(salt)>0:
+            message = message +" "+salt
+            
+        padding = 64 - len(message)
+        data = list(message+ "\x00"*padding)
+        for i in range(64-padding, 64):
+            data[i] = chr(padding)
+    
+        data = "".join(data)
+        result = self._encrypt(data, passphrase)
+        dataToSend = binascii.hexlify(result).upper()
+
+        # call the dongle
+	url = 'http://scrambler.s-crib.com:4243/ENSCRAMBLE/george/'+dataToSend
+	page = urllib2.urlopen(url)
+	response = page.read().strip().split()
+	print str(name).zfill(2)+" "+response[0][:6]
+        result = response[0].encode("ascii","ignore")
+        # the result must be terminated with '\n'
+	try:
+            data = binascii.unhexlify(result.strip())
+            result = self._decrypt(data, passphrase)
+            if (len(result)>0):
+                if (serverCounter.ljust(11)!=result[:11]): #check the server challenge
+                    print("Server counter is incorrect IN: %s, OUT %s " % (serverCounter.ljust(10),result[:10]))
+                    return "ERR301"
+
+                index = 11
+                password = binascii.hexlify(result[index:(index+20)]).upper()
+                index += 20
+                salt = result[index:(index+saltLength)]
+                index += saltLength
+                counter = (((ord(result[index])*256+ord(result[index+1]))*256+ord(result[index+2]))*256+ord(result[index+3]))
+                return (password, salt, counter)
+            else:
+                print("No data returned")
+                return "ERR302"
+        except:
+            pass
+        
+    def ENGETID(self,passphrase, serverCounter, dongleID):
+        # create the encrypted packet
+        if len(serverCounter)>10:
+            print("Server counter can be only 10 characters long - ENGETID")
+            return "ERR109"
+           
+        if len(dongleID)>16:
+            print("The dongle ID must be shorter than 17 characters")
+            return "ERR131"
+    
+        try:
+            dongleID = dongleID.strip().zfill(16)
+            dongleIDbin = binascii.unhexlify(dongleID)
+        except:
+            print("The dongle ID must be a hexadecimal string")
+            return "ERR131"
+
+        message = serverCounter.ljust(10) + dongleIDbin
+
+        padding = 32 - len(message)
+        data = list(message+ "\x00"*padding)
+        for i in range(32-padding, 32):
+            data[i] = chr(padding)
+    
+        data = "".join(data)
+        result = self._encrypt(data, passphrase)
+        dataToSend = binascii.hexlify(result).upper()
+
+        # call the dongle
+	url = 'http://scrambler.s-crib.com:4243/ENGETID/george/'+dataToSend+'/'+dongleID
+	print('URL with ENGETID request: %s\n'%url)
+	page = urllib2.urlopen(url)
+	response = page.read().strip().split()
+        print("Response from the server is:\n%s\n"%response)
+        result = response[0].encode("ascii","ignore")
+        # the result must be terminated with '\n'
+        data = binascii.unhexlify(result.strip())
+        result = self._decrypt(data, passphrase)
+        if (len(result)>0):
+            if (serverCounter.ljust(10)!=result[:10]): #check the server challenge
+                print("Server counter is incorrect IN: %s, OUT %s " % (serverCounter.ljust(10),result[:10]))
+                return "ERR301"
+
+            index = 10
+            dongleIDback = binascii.hexlify(result[index:(index+8)]).upper()
+            index += 8
+            counter = (((ord(result[index])*256+ord(result[index+1]))*256+ord(result[index+2]))*256+ord(result[index+3]))
+            return (dongleIDback, counter)
+        else:
+            print("No data returned")
+            return "ERR302"
+
+
+
+def testThread(name):
+    transportKey = 'UfN3_EAy)C4e5Y0C/?/z/yPyYi7n-TFq'
+    counterSecret = str(int(time.time()*10))[1:]
+    password = "passw0rd"
+    saltLength = 10
+    salt = None
+    client = Client()  
+    start = time.time()
+    for i in range(50):
+        result = client.ENSCRAMBLE(transportKey, counterSecret, password, saltLength, salt,name)
+        result =""
+    end = time.time()
+    print("Thread %d running time is : %f\n\n"%(name, end-start)) 
+
+                
+if __name__ == '__main__':
+
+    threads = []
+    for i in range(10):
+        t = threading.Thread(target=testThread,args=(i,))
+        t.daemon = True
+        t.start()
+        threads.append(t)
+    for j in threads:
+        j.join()
+    pass
