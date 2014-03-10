@@ -217,9 +217,9 @@ class Dongle(object):
     def _writeCmd(self, cmd):
         try:
             self._stick.flush()
-            time.sleep(0.1)
+            #time.sleep(0.1)
             length = self._stick.write(cmd)
-            time.sleep(0.1)
+            #time.sleep(0.1)
             return length
         except:
             print ("Device unplugged %s - write"% self.ID())
