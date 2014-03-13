@@ -1,3 +1,13 @@
+/*****************************************************************************
+Copyright 2013-14, Smart Crib Ltd
+@license: This code is provided for review and analysis only. It must not be 
+          used for any other purpose without permission of Smart Crib Ltd
+@version: 1.0
+@email: info@s-crib.com
+@status: Test
+******************************************************************************/
+
+
 // scramblePassword(validChars, 0, j+2, 10);	
 ///////////////////////////////////////////////////////////////////////////////
 // msgLength - the total length of data passed in the function
