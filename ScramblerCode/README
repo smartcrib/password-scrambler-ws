@@ -1,5 +1,16 @@
+Copyright 2013-14, Smart Crib Ltd
+@version: 1.0
+@email: info@s-crib.com
+@status: Test
+
 This folder contains a selection of code as implemented in S-CRIB Scrambler.
 
 It is not a whole project but includes all relevant code for processing API commands.
 
+scrib.c - this is the main processing loop that accepts requests and decides what to do.
+scramble.c - this code shows the main passwordScramble function
+sha1.c - this file contains a low-level Scramble function with SHA1-HMAC
+
+The files do not contain complete code as implemented in Scramble S-CRIB but all relevant 
+functions have been simply copy-pasted and no alteration to the code has been made.
 
