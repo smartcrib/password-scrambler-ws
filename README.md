@@ -12,6 +12,7 @@ Preparing Raspberry Pi
 
 0. Get an SD card (4GB or more), install Raspbian as suggested here (http://www.raspbian.org/RaspbianInstaller) and make sure you can ssh to your Raspberry Pi.
 1. create user scrib: sudo adduser scrib
+   change the default "raspberry" password for 'pi' user
 2. install svn: sudo apt-get install subversion
 3. install ufw firewall
     sudo apt-get install ufw   # warning -  warning: script 'mathkernel' missing LSB tags and overrides
@@ -67,6 +68,29 @@ SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTRS{idVendor}=="0403", ATTRS{idP
 16. now you can start the service manually:
     sudo /etc/init.d/scribrestfull start
     sudo /etc/init.d/scribmanager start
+
+Enabling HTTPS
+==============
+17. Install a web server that supports HTTPS
+    sudo apt-get install python-cherrypy3 
+18. Install OpenSSL for Python
+    sudo apt-get install python-openssl
+19. Create a certificate and a private key - the command will ask you for some details - we show input for our test
+    sudo openssl req -new -x509 -keyout scrambler.pem -out scrambler.pem -days 3650 -nodes
+      Country Name (2 letter code) [AU]:GB
+      State or Province Name (full name) [Some-State]:Cambridgesire
+      Locality Name (eg, city) []:Cambridge
+      Organization Name (eg, company) [Internet Widgits Pty Ltd]:Smart Crib Ltd
+      Organizational Unit Name (eg, section) []:S-CRIB Scrambler
+      Common Name (e.g. server FQDN or YOUR name) []:scrambler.s-crib.com
+      Email Address []:info@s-crib.com
+    make sure the owner and privileges on the scrambler.pem file are correct
+      sudo chown scrib:scrib scrambler.pem
+      sudo chmod 0400 scrambler.pem
+20. Try to restart the service, alternatively reboot the host computer
+
+NOTE: Python would not verify certificate by default. It is necessary to correctly handle HTTPS connections and at least verify the hostname. We will amend documentation with this issue shortly.
+
 
 Initial Configuration of Scramblers
 ===================================
