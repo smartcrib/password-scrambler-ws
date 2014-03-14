@@ -12,15 +12,40 @@
 @email: info@s-crib.com
 @status: Test
 '''
-from gevent import monkey;monkey.patch_all()
-from gevent.pool import Pool
-from bottle import route, run, request
+from bottle import Bottle, run, route, request, server_names, ServerAdapter
 import socket
 import sys
 import time
 
-_HOST = 'localhost'
-_PORT = 4241
+_HOST = '0.0.0.0' # inet interface on which REST listens 
+_PORT = 4242 # outbound TCP port 
+_PORT_INT = 4241 # this is the PORT on which scribTCP.py is listening 
+
+_ENABLE_SSL = False  # set it True or False 
+
+# Declaration of new class that inherits from ServerAdapter  
+# It's almost equal to the supported cherrypy class CherryPyServer  
+class MySSLCherryPy(ServerAdapter):  
+    def run(self, handler):  
+        from cherrypy import wsgiserver  
+        server = wsgiserver.CherryPyWSGIServer((self.host, self.port), handler)  
+      
+        # If cert variable is has a valid path, SSL will be used  
+        # You can set it to None to disable SSL  
+        cert = './scrambler1.pem' # certificate path   
+        server.ssl_certificate = cert  
+        server.ssl_private_key = cert  
+        try:  
+            server.start()  
+        finally:  
+            server.stop()  
+  
+# Add our new MySSLCherryPy class to the supported servers  
+# under the key 'mysslcherrypy'  
+server_names['mysslcherrypy'] = MySSLCherryPy  
+  
+app = Bottle()  
+
 
 def checkHexNumber(dongleid, length = None):
     #remove all spaces
@@ -57,7 +82,7 @@ def forwardRequest(request):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Connect to server and send data
-        sock.connect((_HOST, _PORT))
+        sock.connect(('localhost', _PORT_INT))
         sock.sendall(request)
         # Receive data from the server and shut down
         received = sock.recv(1024)
@@ -249,6 +274,12 @@ def isClusterLocked(apikey = ''):
     received = forwardRequest(command + " " + apikey + "\n")    
     return received
 
-# open definitions of sCribClients - apikeys and clusterIDs
-Pool(20)
-run(host="0.0.0.0", port=4242, reloader = 'True' ,server= 'gevent')
+# 
+if _ENABLE_SSL:
+    run(host=_HOST, port=_PORT, reloader=True, server= 'mysslcherrypy')
+else:
+    from gevent import monkey;monkey.patch_all()
+    from gevent.pool import Pool
+
+    Pool(20)
+    run(host=_HOST, port=_PORT, reloader=True, server= 'gevent')
