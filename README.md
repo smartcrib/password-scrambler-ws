@@ -87,7 +87,8 @@ Enabling HTTPS
     make sure the owner and privileges on the scrambler.pem file are correct
       sudo chown scrib:scrib scrambler.pem
       sudo chmod 0400 scrambler.pem
-20. Try to restart the service, alternatively reboot the host computer
+20. Open scribREST.py, find _ENABLE_SSL and set it to True
+21. Try to restart the service, alternatively reboot the host computer
 
 NOTE: Python would not verify certificate by default. It is necessary to correctly handle HTTPS connections and at least verify the hostname. We will amend documentation with this issue shortly.
 
