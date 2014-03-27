@@ -1,8 +1,15 @@
 #!/usr/bin/python
-'''
-Created on 25 March 2014
+"""sc_driver.py: a class interfacing a physical S-CRIB Scramble device for command line 
+utilities through pylibftdi library - project sCribManager - Python."""
 
-@author: George
+'''
+@author: George French
+@copyright: Copyright 2013-14, Smart Crib Ltd
+@credits: George French, Dan Cvrcek
+@license: GPL version 3 (e.g., https://www.gnu.org/copyleft/gpl.html)
+@version: 1.0
+@email: info@s-crib.com
+@status: Test
 '''
 
 from pylibftdi import Device, Driver
@@ -314,6 +321,7 @@ if __name__ == "__main__":
             print("Can call this script with a device ID as \ncommand line argument to get status information.")
     else:
         device = sys.argv[1]
+        device = device.zfill(8)
 
         (id, cluster, locked, counter) = DongleStatus(device)
         if id=="":

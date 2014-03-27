@@ -1,4 +1,16 @@
 #!/usr/bin/python
+"""sc_initkey.py: utility script forS-CRIB Scramble device to format initialisation key 
+it requires input string of 40 hex characters - project sCribManager - Python."""
+
+'''
+@author: Dan Cvrcek 
+@copyright: Copyright 2013-14, Smart Crib Ltd
+@credits: Dan Cvrcek
+@license: GPL version 3 (e.g., https://www.gnu.org/copyleft/gpl.html)
+@version: 1.0
+@email: info@s-crib.com
+@status: Test
+'''
 
 import hashlib
 import sys
@@ -26,5 +38,5 @@ if __name__ == "__main__":
         initkey1 = initkey0.upper()
         print(initkey1) 
     else:
-        print("This script must be callled with exactly one argument")
+        print("This script must be callled with exactly one argument - 40 characters long hex string")
 
