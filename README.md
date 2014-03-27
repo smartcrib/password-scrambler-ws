@@ -1,6 +1,8 @@
 password-scrambler-ws
 =====================
 
+If you never heard about S-CRIB Scrambler, have a look at the project page at http://docs.s-crib.com/doku.php/how_to_use_scramble_scrib
+
 Python implementation of a web service for Smart Crib hardware password scramblers
 
 This implementation has been tested with Raspberry Pi with Raspbian. Monit scripts have not been tested in any way.
