@@ -1,4 +1,4 @@
-password-scrambler-ws
+**password-scrambler-ws**
 =====================
 
 If you never heard about S-CRIB Scrambler, have a look at the project page at http://docs.s-crib.com/doku.php/how_to_use_scramble_scrib
