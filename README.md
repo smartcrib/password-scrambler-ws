@@ -52,9 +52,9 @@ Preparing Raspberry Pi
 11. Update a configuration file for FTDI devices
     - **sudo vi /etc/udev/rules.d/99-libftdi.rules**
     ... and copy the following line to the file and save it with (ESC, :q <ENTER>)
-*
-# FTDI Devices: FT232BM/L/Q, FT245BM/L/Q, FT232RL/Q, FT245RL/Q, VNC1L with VDPS Firmware
-SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", MODE="0664", GROUP="plugdev"*
+
+ - *# FTDI Devices: FT232BM/L/Q, FT245BM/L/Q, FT232RL/Q, FT245RL/Q, VNC1L with VDPS Firmware*
+ - *SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", MODE="0664", GROUP="plugdev"*
 12. update udev immediately:
     - **sudo udevadm trigger** #applies the new rule immediately even on plugged devices
 13. add user 'scrib' to plugdev group so that it can read and write to Scramblers
