@@ -32,7 +32,7 @@ class MySSLCherryPy(ServerAdapter):
       
         # If cert variable is has a valid path, SSL will be used  
         # You can set it to None to disable SSL  
-        cert = './scrambler1.pem' # certificate path   
+        cert = './scrambler.pem' # certificate path   
         server.ssl_certificate = cert  
         server.ssl_private_key = cert  
         try:  
@@ -209,6 +209,34 @@ def getPasswd(apikey = '', dongleid = '', passwordid = ''):
         return text[:6]
 
     received = forwardRequest(command + " " + apikey + " " + dongleid + " " + passwordid + "\n")    
+    return received
+
+@route('/CHECKAPICLIENT/<clusterid>')
+def addAPIClient(clusterid = ''):
+    command = "CHECKAPICLIENT"
+    try:
+        checkRemote(command, request.remote_addr)
+        clusterid = clusterid.strip()
+    except ValueError,e:
+        text = "%s"%e
+        print(text[6:])
+        return text[:6]
+
+    received = forwardRequest(command + " " + clusterid + "\n")    
+    return received
+
+@route('/ADDAPICLIENT/<clusterid>')
+def addAPIClient(clusterid = ''):
+    command = "ADDAPICLIENT"
+    try:
+        checkRemote(command, request.remote_addr)
+        clusterid = clusterid.strip()
+    except ValueError,e:
+        text = "%s"%e
+        print(text[6:])
+        return text[:6]
+
+    received = forwardRequest(command + " " + clusterid + "\n")    
     return received
 
 @route('/GETCLUSTERDELAY/<apikey>')

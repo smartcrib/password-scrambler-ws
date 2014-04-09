@@ -222,7 +222,7 @@ class Dongle(object):
             #time.sleep(0.1)
             return length
         except:
-            print ("Device unplugged %s - write"% self.ID())
+            print("Device unplugged %s - write"% self.ID())
             #ERR410
             return None
 
@@ -391,7 +391,7 @@ class Dongle(object):
                             result = None
                         return result
                     
-                    print ValueError("Salt length : %d does not match the length of the salt supplied: %s" %(saltLength,len(salt)))
+                    print(ValueError("Salt length : %d does not match the length of the salt supplied: %s" %(saltLength,len(salt))))
                     return "ERR105"
                 else:
                     print("Salt length must be between 0 and 32 not: %d" %saltLength)
@@ -435,7 +435,6 @@ class Dongle(object):
         dataToSend = binascii.hexlify(result).upper()
 
         # call the dongle
-        print dataToSend
         (_, result) = (self._writeCmd(self.enScrambleText % dataToSend), self._readData(self.enScrambleTextLen ))
         result = result.encode("ascii","ignore")
         # the result must be terminated with '\n'

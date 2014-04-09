@@ -48,7 +48,7 @@ class DeviceRecord(Thread):
         self._initLock = Lock()
 
         self._initLock.acquire() # lock the object until a queue is assigned to it
-        print "A device %s (HW ID: %s) created - cluster %s"%(self._dongleID, self._dongleHWID, self._clusterID)        
+        print("A device %s (HW ID: %s) created - cluster %s"%(self._dongleID, self._dongleHWID, self._clusterID)) 
         Thread.__init__(self)
     
     def getID(self):
@@ -87,15 +87,15 @@ class DeviceRecord(Thread):
                     self._queue['control'].release()
                     # process
                     
-                    print "Request %s to be sent to device %s" %(task['request'], self._dongleID)
+                    print("Request %s to be sent to device %s" %(task['request'], self._dongleID))
                     response = self._dongle.process(task['request'])
                     if response:
                         task['response'] = response
-                        print "Request %s processed by device %s" % (task['request'], self._dongleID)
+                        print("Request %s processed by device %s" % (task['request'], self._dongleID))
 
                         task['callback'](True, response) # this will free a lock in the TCP server thread
                     else:
-                        print "Request %s failed by device %s" % (task['request'], self._dongleID)
+                        print("Request %s failed by device %s" % (task['request'], self._dongleID))
                         #device does not respond
                         self._queue['control'].acquire()
                         self._queue['requests'].append(task) #return the task back to the queue
@@ -112,13 +112,13 @@ class DeviceRecord(Thread):
                     else:
                         self._queue['control'].release()
                         sleep(0.10)
-        print "A device %s is exiting" % self._dongleID
+        print("A device %s is exiting" % self._dongleID)
       
     def assignQueue(self, queue, cluster):
         self._queue = queue
         self._cluster = cluster
         self._initLock.release()
-        print "A queue assigned to device %s (length is %d)" %(self.getID(), queue['length'])
+        print("A queue assigned to device %s (length is %d)" %(self.getID(), queue['length']))
 
 
         

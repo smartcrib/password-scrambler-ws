@@ -14,6 +14,8 @@
 '''
 
 import pickle
+import random
+import string
 
 class sCribClients(object):
     '''
@@ -78,7 +80,43 @@ class sCribClients(object):
     def close(self):
         #TODO add Path check
         self.persist()
-            
+        
+
+    def addClient(self, clusterID):
+        print("Entered addClient()")
+        if (clusterID is None):
+            return "ERR209"
+        elif len(clusterID)!=10:
+            return "ERR209"
+        else:
+            found = False
+            for key in self._Directory:
+                if self._Directory[key]['cluster'] == clusterID:
+                    found = True
+            if found:
+                return "ERR206" #API key exists
+            else:
+                random.seed() # seed with current time only
+                apiKey = "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(48))
+                self.add(apiKey, clusterID)
+                print("an API client created: "+apiKey)
+                return apiKey+" "+clusterID 
+
+    def checkClient(self, clusterID):
+        if (clusterID is None):
+            return "ERR209"
+        elif len(clusterID)!=10:
+            return "ERR209"
+        else:
+            found = None
+            for key in self._Directory:
+                if self._Directory[key]['cluster'] == clusterID:
+                    found = key
+            if found is None:
+                return "ERR207" 
+            else:
+                return found  
+ 
     def add(self, apikey, clusterID, info=None):
         
         if (apikey == None) or (clusterID == None):
@@ -93,7 +131,7 @@ class sCribClients(object):
         self.updated = True
 
         try:
-            self.save()
+            self.persist()
             self.updated = False
         except:
             pass

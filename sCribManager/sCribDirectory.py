@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""sCribClients.py: a directory of hardware devices and their clusters:
+"""sCribDirectory.py: a directory of hardware devices and their clusters:
    project S-CribManager - Python."""
 
 '''
@@ -39,7 +39,7 @@ class sCribDirectory(object):
             return self._Clusters[clusterID]
         else:
             None  
-            
+           
     def getClusterDevices(self, clusterID):
         result = None
         if clusterID in self._Clusters:
@@ -160,10 +160,9 @@ class sCribDirectory(object):
 if __name__ == "__main__":
     
     with sCribDirectory() as sDict:
-        # d = sDict()
-        sDict.add(cluster="George",tokenNumber="1234")
+        sDict.add(cluster="george",tokenNumber="8mxaN*_d13")
         #print sDict.getToken("Dan")
-    print sDict.getToken("George")
+    print sDict.getToken("george")
          
         
             

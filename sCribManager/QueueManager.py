@@ -43,7 +43,11 @@ class QueueManager(Thread):
                  'GETCLUSTERLOCKED':'104',
 		 'GETCLUSTERDELAY':'105',
                  }
-    
+   
+    _apicommands = {
+                 'ADDAPICLIENT':'201',
+                 'CHECKAPICLIENT':'202',
+                 }
     
     def __init__(self):
         '''
@@ -71,35 +75,58 @@ class QueueManager(Thread):
             return True
         elif request[0] in self._clustercommands:
             return True
+        elif request[0] in self._apicommands:
+            return True
         else:
             return False
         
     
     def getRequestCluster(self, requestString):
+        cluster = None
+
         request = requestString.split()
-        if (self.isClusterRequest(requestString)):
+        if self.isClusterRequest(requestString):
             request[0] = self._clustercommands[request[0]]
+        elif self.isAPIRequest(requestString):
+            request[0] = self._apicommands[request[0]]
+	    cluster = "virtual"
         else:
             request[0] = self._commands[request[0]]
-        if len(request)>1:
+
+        if (len(request)>1) and (cluster is None):
             cluster = request.pop(1)
-            return (cluster, ' '.join(request))
+            return(cluster, ' '.join(request))
+        elif cluster is None:
+            return(None, request)  #error 
         else:
-            return (None, request[0])
-    
-    
+            return(cluster, ' '.join(request)) #API command
+
     def isClusterRequest(self, request):
         parts = request.split()
         try:
             if parts[0] in self._clustercommands:
                 return True
-            elif int(parts[0])>100:
+            elif (int(parts[0])>100) and (int(parts[0])<200):
                 return True
             else:
                 return False
         except:
             return False
-    
+   
+    def isAPIRequest(self, request):
+        parts = request.split()
+	if len(parts)<2:
+            return False #the command must be at least one param - API key
+        try:
+            if parts[0] in self._apicommands:
+                return True
+            elif (int(parts[0])>200) and(int(parts[0])<300):
+                return True
+            else:
+                return False
+        except:
+            return False
+
     def newRequest(self, requestString, callback_function):
         ''' 
         Simple add to a queue for the given cluster
@@ -114,13 +141,18 @@ class QueueManager(Thread):
             if self._parseRequest(requestString):
                 (clusterID, request) = self.getRequestCluster(requestString)
                 if clusterID is None:
-                    print ("The API key is incorrect - request %s" % requestString)
+                    print("The API key is incorrect - request %s" % requestString)
                     callback_function(False, "ERR207")
                     return False
                 else:
                     if (self.isClusterRequest(request)):
                         response = self.process(clusterID, request)
                         callback_function(True, response)
+                        return True
+                    elif (self.isAPIRequest(request)):
+                        params = request.split(' ',1)
+			command = params[0].strip()
+			callback_function(True, "ERR211 "+command+" "+params[1].strip())
                         return True
                     else:
                         if clusterID in self._Queues.keys():
@@ -200,7 +232,6 @@ class QueueManager(Thread):
                      
         return data
 
-        
     def GETCLUSTERCOUNTER(self, cluster):
         if cluster in self._Queues:
             counter = self._Queues[cluster]['counter']

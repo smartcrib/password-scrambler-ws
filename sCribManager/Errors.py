@@ -66,6 +66,10 @@ class Errors(object):
     ERR_INTERNALNORESP = 205
     ERR_APIKEYEXISTS = 206
     ERR_APIKEYNOTFOUND = 207
+    ERR_INTERNALCMD = 208
+    ERR_PARAMS = 209
+    ERR_NOCLIENTDB = 210
+    ERR_APICOMMAND = 211
 
     ERR_SERVERCOUNTER = 301
     ERR_DECRYPT = 302
@@ -150,7 +154,11 @@ class Errors(object):
                ERR_INTERNALNORESP:  {'code': "ERR205", 'log':"", 'desc':""},
                ERR_APIKEYEXISTS: {'code': "ERR206", 'log':"", 'desc':""},
                ERR_APIKEYNOTFOUND: {'code': "ERR207", 'log':"", 'desc':""},
-               
+               ERR_INTERNALCMD: {'code': "ERR208", 'log':"", 'desc':""},
+               ERR_PARAMS: {'code': "ERR209", 'log':"", 'desc':""},
+	       ERR_NOCLIENTDB: {'code': "ERR210", 'log':"", 'desc':""},
+	       ERR_APICOMMAND: {'code': "ERR211", 'log':"", 'desc':""},
+
 # client errors
                ERR_SERVERCOUNTER:  {'code': "ERR301", 'log':"", 'desc':""},
                ERR_DECRYPT:  {'code': "ERR302", 'log':"", 'desc':""},

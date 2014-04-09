@@ -25,9 +25,11 @@ class scribTCPServer(SocketServer.BaseRequestHandler):
 
     def handle(self):
         self._verified = None
+	self._apiExists = None
         self._success = False  # whether the processing has been completed or not
         self._request = ''
         self._response = ''
+        self._apicommand = False
         self._semaphore = BoundedSemaphore(value=1)
         
         
@@ -39,18 +41,20 @@ class scribTCPServer(SocketServer.BaseRequestHandler):
             return
         
         data = data.replace("\b", "")
-        print ("InternalTCP - request received: %s"%data)
+        print("InternalTCP - request received: %s"%data)
         self._request = data.strip()+'\n'
 
         #server.queueManager      
         cur_thread = threading.current_thread()
-        print cur_thread.name+" received "+self._request
+        print(cur_thread.name+" received "+self._request)
         
         if  self._verified is None:
             self.testRequest()
             
         if self._verified == False:
-            return False
+           if len(self._response) < 6:
+               self._response = "ERR204"
+           self.request.sendall(self._response) 
             
         self._semaphore.acquire()
         #insert itself to the Queue manager
@@ -61,15 +65,29 @@ class scribTCPServer(SocketServer.BaseRequestHandler):
 
         if self._success:
             self.request.sendall(self._response)
+        elif self._apicommand:
+            #finally we can do API command processing here
+            self._response = self.processAPICommand(self._response)
+            self.request.sendall(self._response)
         else:
-            self.response = "ERRxxx"
+            if len(self._response) < 6:
+                self._response = "ERR204"
             #TODO call a class constructor and block till its processing is completed
             self.request.sendall(self._response)
-        
+        self._semaphore.release()
+       
+
     def callback(self, success, response):
         
-        self._response = response
-        self._success = success
+        returned = response.split(' ',1)
+	if (len(returned)==2) and (returned[0]=="ERR211"):
+            self._apicommand = True
+            self._response = returned[1].strip()
+            self._success = False
+        else:
+            self._response = response
+            self._success = success
+
         #we have result, we can return it to the server
         self._semaphore.release()
 
@@ -80,16 +98,40 @@ class scribTCPServer(SocketServer.BaseRequestHandler):
         requestItems = request.split(" ")
         self._request = request
         if (not _clients):
-            raise ValueError("The API clients database has not been created yet - testRequest()")
+            self._verified = False
+            self._response = "ERR210"
+            return False  #internal list of clients does not exist
+            #raise ValueError("The API clients database has not been created yet - testRequest()")
         else :
             if (_clients.exists(requestItems[1])):
                 requestItems[1] = _clients.getClusterID(requestItems[1])
                 self._request = ' '.join(requestItems)
                 self._verified = True
+		self._apiExists = True
                 return True
             else:
-                self._verified = False
+                self._verified = True 
+                self._apiExists = False
                 return False
+
+    def processAPICommand(self, command = None):
+        if command is None:
+            return "ERR208"
+        splitcmd = command.split(' ')
+	if len(splitcmd)<2:
+            return "ERR204"
+
+        api = splitcmd[1].strip()
+        if int(splitcmd[0])==201:
+            #ADDAPICOMMAND
+	    result = _clients.addClient(api)
+        elif int(splitcmd[0])==202:
+            #CHECKAPICOMMAND
+            result = _clients.checkClient(api)
+        else:
+            result = "ERR211"
+
+        return result
                 
         
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
@@ -115,7 +157,7 @@ if __name__ == '__main__':
     
     #server_thread.daemon = True
     server_thread.start()
-    print "Server loop running in thread:", server_thread.name
+    print("Server loop running in thread:", server_thread.name)
     
     
     #server.shutdown()
