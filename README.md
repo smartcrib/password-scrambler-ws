@@ -13,8 +13,9 @@ Preparing Raspberry Pi
 ======================
 
 0. Get an SD card (4GB or more), install Raspbian as suggested here (http://www.raspbian.org/RaspbianInstaller) and make sure you can ssh to your Raspberry Pi.
-1. create user scrib: sudo adduser scrib
-   change the default "raspberry" password for 'pi' user
+1. setting off:
+   - create user scrib: sudo adduser scrib
+   - change the default "raspberry" password for 'pi' user
 2. install svn: sudo apt-get install subversion
 3. install ufw firewall
     sudo apt-get install ufw   # warning -  warning: script 'mathkernel' missing LSB tags and overrides
