@@ -264,7 +264,7 @@ class sc_driver(object):
                 if saltLength >=0 and saltLength <=32:
                     if salt == "" or len(salt) == saltLength:
                         return (self.__writeCmd(self.scrambleText %(password,saltLength,salt)),
-                                self.__readData(self.getDelayTextLen + saltLength + self.scrambleLength ))
+                                self.__readData(self.getDelayTextLen + saltLength + self.scrambleTextLen ))
                     raise ValueError("Salt length : %d does not match the length of the salt supplied: %s" %(saltLength,len(salt)))
                 else:
                     raise ValueError("Salt length must be between 0 and 32 not: %d" %saltLength)
