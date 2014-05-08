@@ -12,7 +12,7 @@ utilities through pylibftdi library - project sCribManager - Python."""
 @status: Test
 '''
 
-from pylibftdi import Device, Driver
+from pylibftdi import * 
 import time
 import binascii
 import sys
@@ -57,7 +57,11 @@ class sc_driver(object):
         b, Password 3  computes -time- to EXOR with salt before scrambling; and
         c, Password 4  encryption of parameters for commands with prefix EN.
     '''
-    
+   
+    def __exit__(self, type, value, traceback):
+        if self.stick is not None:
+            self.stick.close()
+
     def __init__(self,deviceId=""):
         '''
         Constructor
@@ -130,7 +134,15 @@ class sc_driver(object):
         '''
         self.scrambleText = "SCRAMBLE %s %02d %s\n"
         self.scrambleTextLen = operationCounterLen  # Length will need to adjusted at time of call
-  
+ 
+        '''
+	This command will update the counter for password 4 - the communication key. The
+	result is effective re-keying of the communication encryption for commands ENGETID
+	and ENSCRAMBLE. 
+	No parameters. Returns a decimal number of three digits.
+	'''
+	self.rekeyText = "REKEY\n"
+	self.rekeyTextLen = 3 + operationCounterLen #it returns the number of re-keying
         
         '''
         SETDELAY allows the Host computer to set additional delay between commands to protect against brute-force attacks. 
@@ -143,10 +155,9 @@ class sc_driver(object):
         
         self.firstCmd = True
         self.errorFlag = False
-        self.errorMSg = ""
+        self.errorMsg = ""
         if deviceId == "":
-            #pass 
-            self.stick = Device(mode = "t")
+            self.stick = None 
 
         else:
             self.stick = Device(device_id=deviceId,mode = "t")
@@ -155,21 +166,9 @@ class sc_driver(object):
         
     
     
-    def getDeviceList(self):
-        ''' 
-        return a list of lines, each a colon-separated
-        vendor:product:serial summary of detected devices
-        '''
-        dev_list = []
-        devices = Driver().list_devices()
-        for device in devices:
-            device = map(lambda x: x.decode('latin1'), device)
-            vendor, product, serial = device
-            dev_list.append(("%s:%s:%s" % (vendor, product, serial),serial))
-        return dev_list
-  
     def close(self):
         self.stick.close()
+        self.stick = None
     
 #    Management Commands 
         
@@ -191,7 +190,6 @@ class sc_driver(object):
         return (len,data)
         
     def GETPASSWD(self, passwordIndex):
-        
         if isinstance(passwordIndex,(int)):
             if passwordIndex >= 2 and passwordIndex <=4:
                 self.stick.flush()
@@ -200,6 +198,12 @@ class sc_driver(object):
                 raise ValueError("Password index must be 2/3/4 not: %d" %passwordIndex)
         else:
             raise TypeError("Password index must be an Integer")
+        
+    def REKEY(self):
+        self.stick.flush()
+        return (self.__writeCmd(self.rekeyText),self.__readData(self.rekeyTextLen))
+
+
 #    Status Commands
         
 
@@ -281,10 +285,25 @@ class sc_driver(object):
             raise TypeError("delay must be an INT")
         
 
+
+    def getDeviceList(self):
+        ''' 
+        return a list of lines, each a colon-separated
+        vendor:product:serial summary of detected devices
+        '''
+        dev_list = []
+        devices = Driver().list_devices()
+        for device in devices:
+            device = map(lambda x: x.decode('latin1'), device)
+            vendor, product, serial = device
+            dev_list.append(("%s:%s:%s" % (vendor, product, serial),serial))
+        return dev_list
+  
+
 def DongleStatus(deviceId = ""):
 
     try:
-        stick =sc_driver(deviceId=device)
+        stick = sc_driver(deviceId)
         if stick:
             getlocked = stick.GETLOCKED()
             getlocked = getlocked[1].split(" ")
@@ -304,6 +323,7 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         noDongles = 0
         print("List of connected devices:")
+
         for device in sc_driver().getDeviceList():
             noDongles += 1
             (id, cluster, locked, counter) = DongleStatus(device[1])
@@ -315,7 +335,7 @@ if __name__ == "__main__":
  
         print("\n") 
         if noDongles <1:
-            print("No Password S-CRIB found.") 
+            print("No S-CRIB Scrambler found.") 
         else: 
             print("Please use the device ID if you want to open a particular device")
             print("Can call this script with a device ID as \ncommand line argument to get status information.")
@@ -325,10 +345,10 @@ if __name__ == "__main__":
 
         (id, cluster, locked, counter) = DongleStatus(device)
         if id=="":
-            print("Password S-CRIB, ID=%s was not found"%device)
+            print("S-CRIB Scrambler, ID=%s was not found"%device)
         else:
             print("%s %s %s %s %s"%(device, id, cluster, counter, locked)) 
-            print("Password S-CRIB %s"%device)
+            print("S-CRIB Scrambler %s"%device)
             print("    API ID: %s"%id)
             print("    Cluster ID: %s"%cluster)
             print("    Operation counter: %s"%counter)

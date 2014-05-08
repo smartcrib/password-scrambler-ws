@@ -18,7 +18,7 @@ from sc_driver import sc_driver
 def DongleStatus(deviceId = "", getPwd = 0):
 
     try:
-        stick =sc_driver(deviceId=device)
+        stick =sc_driver(deviceId=deviceId)
         if stick:
             getlocked = stick.GETLOCKED()
             getlocked = getlocked[1].split(" ")
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
         print("\n")
         if noDongles <1:
-            print("No Password S-CRIB found.")
+            print("No S-CRIB Scrambler found.")
         else:
             print("Please use the device ID to request its initialisation key for backup.")
             print("Call this script with a device ID as \ncommand line argument to get initialisation key.")
@@ -70,13 +70,13 @@ if __name__ == "__main__":
 
         (id, cluster, locked, counter, initkey) = DongleStatus(device, 1)
         if id=="":
-            print("Password S-CRIB, ID=%s was not found"%device)
+            print("S-CRIB Scrambler, ID=%s was not found"%device)
         else:
             if locked == "0":
                 print("%s %s %s %s %s %s"%(device, id, cluster, locked, counter, initkey))
                 print("Please keep the following lines safe. We suggest to print the text and only")
                 print("keep the hard copy!\n")
-                print("Password S-CRIB %s"%device)
+                print("S-CRIB Scrambler %s"%device)
                 print("    API ID: %s"%id)
                 print("    Cluster ID: %s"%cluster)
                 print("    Initialisation key: %s"%initkey)
