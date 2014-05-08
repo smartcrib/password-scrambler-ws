@@ -134,7 +134,16 @@ class sc_driver(object):
         '''
         self.scrambleText = "SCRAMBLE %s %02d %s\n"
         self.scrambleTextLen = operationCounterLen  # Length will need to adjusted at time of call
- 
+
+        '''
+        This is the encrypted version of the actual operation command. It accepts an encrypted
+        packet long 128 characters. It must be a hex-decimal string. The packet is created by
+        encrypting parameters with a communication key - pwd4.
+        Please have a look at sc_enscramble.py for example of how to create such a packet.
+        '''
+        self.enscrambleText = "ENSCRAMBLE %s\n"
+        self.enscrambleTextLen = operationCounterLen+128
+
         '''
 	This command will update the counter for password 4 - the communication key. The
 	result is effective re-keying of the communication encryption for commands ENGETID
@@ -169,7 +178,8 @@ class sc_driver(object):
     def close(self):
         self.stick.close()
         self.stick = None
-    
+   
+
 #    Management Commands 
         
     def SETINITKEY(self,key):
@@ -284,6 +294,12 @@ class sc_driver(object):
         else:
             raise TypeError("delay must be an INT")
         
+    def ENSCRAMBLE(self,packet):
+        self.firstCmd = False
+	if len(packet)==128:
+            return (self.__writeCmd((self.enscrambleText %packet)),self.__readData(self.enscrambleTextLen))
+        else:
+            raise ValueError("Packet must be 128 bytes long: %s" %packet)
 
 
     def getDeviceList(self):
