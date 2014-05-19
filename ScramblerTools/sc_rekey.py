@@ -13,6 +13,7 @@ for use in Scrambler WS clients - project sCribManager - Python."""
 '''
 
 import sys
+from time import sleep
 from sc_driver import sc_driver
 
 def DongleRekey(deviceId = ""):
@@ -25,9 +26,17 @@ def DongleRekey(deviceId = ""):
             cluster = stick.GETCLUSTER()
             cluster = cluster[1].split(" ")
             counter = cluster[1].strip()
-            rekey = stick.REKEY()
-            rekey = rekey[1].split(" ")
-	    print(rekey)
+            keyWait = True
+            while keyWait:
+                rekey = stick.REKEY()
+                rekey = rekey[1].split(" ")
+                if rekey[0].lower() != "ERR010".lower():
+                    keyWait = False
+                    if rekey[0].lower() == "ERR011".lower():
+                        print("ERROR: the Scrambler has just been re-keyed.") 
+                else:
+                    print("Press a button on S-CRIB Scrambler")
+                    sleep(1)
             try:
                 pwd4 = stick.GETPASSWD(4)
                 pwd4 = pwd4[1].split(" ")
