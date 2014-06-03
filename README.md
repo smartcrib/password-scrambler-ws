@@ -5,7 +5,7 @@ If you never heard about S-CRIB Scrambler, have a look at the project page at *h
 
 Python implementation of a web service for Smart Crib hardware password scramblers
 
-This implementation has been tested with Raspberry Pi with Raspbian. Monit scripts have not been tested in any way.
+This implementation has been tested on Raspberry Pi with Raspbian. Monit scripts have not been tested in any way and they are work-in-progress.
 
 We hope to be able to provide image for Rasbian but here is a list of steps we completed to get the Scrambling service working.
 
@@ -66,7 +66,7 @@ Preparing Raspberry Pi
 18. now we need to install all Python dependences:
     - **sudo apt-get install python-crypto**
     - **sudo apt-get install python-dev**
-    - **sudo pip install gevent**  #this command will cause quite a few warnings, ignore them so long as the command succeeds
+    - **sudo pip install gevent**  #this command will take a little while and cause quite a few warnings, be patient and ignore warnings so long as the command succeeds
     - **sudo pip install bottle**
 19. also register the initialisation scripts so they are run after boot automatically
     - **sudo update-rc.d scribrestfull defaults**
@@ -76,14 +76,15 @@ Preparing Raspberry Pi
 20. now you can start the service manually:
     - **sudo /etc/init.d/scribrestfull start**
     - **sudo /etc/init.d/scribmanager start**
+21. at the end you can uninstall python-dev as it is not needed any more: **sudo apt-get remove python-dev**
 
 Enabling HTTPS
 ==============
-21. Install a web server that supports HTTPS
+22. Install a web server that supports HTTPS
     - **sudo apt-get install python-cherrypy3**
-22. Install OpenSSL for Python
+23. Install OpenSSL for Python
     - **sudo apt-get install python-openssl**
-23. Create a certificate and a private key - the command will ask you for some details - we show input for our test
+24. Create a certificate and a private key - the command will ask you for some details - we show input for our test
     - **sudo openssl req -new -x509 -keyout scrambler.pem -out scrambler.pem -days 3650 -nodes**
     -   Country Name (2 letter code) [AU]:GB
     -   State or Province Name (full name) [Some-State]:Cambridgesire
@@ -95,8 +96,8 @@ Enabling HTTPS
     - make sure the owner and privileges on the scrambler.pem file are correct
     - **sudo chown scrib:scrib scrambler.pem** #when you change the file name, update the scribREST.py file as well
     - **sudo chmod 0400 scrambler.pem**
-24. Open scribREST.py, find _ENABLE_SSL and set it to True
-25. Try to restart the service, alternatively reboot the host computer
+25. Open scribREST.py, find _ENABLE_SSL and set it to True
+26. Try to restart the service, alternatively reboot the host computer
 
 NOTE: Python would not verify certificate by default. It is necessary to correctly handle HTTPS connections and at least verify the hostname. We will amend documentation with this issue shortly.
 
@@ -104,10 +105,15 @@ NOTE: Python would not verify certificate by default. It is necessary to correct
 Testing Functionality of Scrambler(s)
 ====================================
 
-26. change effective user to scrib: **sudo su scrib**
-27. create a folder for Scrambler tools - **mkdir /home/scrib/tools**; go to the new folder **cd /home/scrib/tools**
-28. upload tools from GitHub: ** svn checkout https://github.com/smartcrib/password-scrambler-ws/trunk/ScramblerTools .**
-29. if your Scrambler is plugged to the Raspberry, run **python sc_driver.py**; you should see status information about the Scrambler
+27. change effective user to scrib: **sudo su scrib**
+28. create a folder for Scrambler tools - **mkdir /home/scrib/tools**; go to the new folder **cd /home/scrib/tools**
+29. upload tools from GitHub: ** svn checkout https://github.com/smartcrib/password-scrambler-ws/trunk/ScramblerTools .**
+30. if your Scrambler is plugged to the Raspberry, run **python sc_driver.py**; you should see status information about the Scrambler, something like:
+   - List of connected devices:
+   - Smart Crib:Scrambler:00000000
+   -    Device ID: 00000000; API STATUS: (ID: 0102030000000000, CLUSTER: 8mxaN*_d13, COUNTER: 00000001, LOCKED: 1.
+
+
 
 
 Initial Configuration of Scramblers
