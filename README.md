@@ -13,6 +13,7 @@ Preparing Raspberry Pi
 ======================
 
 0. Get an SD card (4GB or more), install Raspbian as suggested here (http://www.raspbian.org/RaspbianInstaller) and make sure you can ssh to your Raspberry Pi.
+0. Once your Raspberry is connected to the internet, Run **sudo rpi-update** and **sudo apt-get update && sudo apt-get upgrade**. Reboot when finished - **sudo shutdown -r now**.
 1. setting off:
    - create user scrib: **sudo adduser scrib**
    - create user www-scrib: **sudo adduser www-scrib**
