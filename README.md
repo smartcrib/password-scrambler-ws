@@ -76,18 +76,20 @@ Preparing Raspberry Pi
 20. now you can start the service manually:
     - **sudo /etc/init.d/scribrestfull start**
     - **sudo /etc/init.d/scribmanager start**
-21. at the end you can uninstall python-dev as it is not needed any more: **sudo apt-get remove python-dev**
+    - command **ps -A|grep scrib** should return a list of two processes
+21. try to reboot Raspberry Pi - **sudo shutdown -r now**; when you login again with ssh **ssh pi@<IP address>** and run **ps -A|grep scrib** you should again see two processes: scribTCP.py and scribREST.py
+22. at the end you can uninstall python-dev as it is not needed any more: **sudo apt-get remove python-dev**
 
 Enabling HTTPS
 ==============
-22. Install a web server that supports HTTPS
+23. Install a web server that supports HTTPS
     - **sudo apt-get install python-cherrypy3**
-23. Install OpenSSL for Python
+24. Install OpenSSL for Python
     - **sudo apt-get install python-openssl**
-24. Create a certificate and a private key - the command will ask you for some details - we show input for our test
+25. Create a certificate and a private key - the command will ask you for some details - we show input for our test
     - **sudo openssl req -new -x509 -keyout scrambler.pem -out scrambler.pem -days 3650 -nodes**
     -   Country Name (2 letter code) [AU]:GB
-    -   State or Province Name (full name) [Some-State]:Cambridgesire
+    -   State or Province Name (full name) [Some-State]:Cambridgeshire
     -   Locality Name (eg, city) []:Cambridge
     -   Organization Name (eg, company) [Internet Widgits Pty Ltd]:Smart Crib Ltd
     -   Organizational Unit Name (eg, section) []:S-CRIB Scrambler
@@ -96,8 +98,8 @@ Enabling HTTPS
     - make sure the owner and privileges on the scrambler.pem file are correct
     - **sudo chown scrib:scrib scrambler.pem** #when you change the file name, update the scribREST.py file as well
     - **sudo chmod 0400 scrambler.pem**
-25. Open scribREST.py, find _ENABLE_SSL and set it to True
-26. Try to restart the service, alternatively reboot the host computer
+26. Open scribREST.py, find _ENABLE_SSL and set it to True; **make sure scribREST.py is still executable!**
+27. Try to restart the service **sudo /etc/init.d/scribrestfull restart**, alternatively reboot the Raspberry Pi 
 
 NOTE: Python would not verify certificate by default. It is necessary to correctly handle HTTPS connections and at least verify the hostname. We will amend documentation with this issue shortly.
 
@@ -105,10 +107,10 @@ NOTE: Python would not verify certificate by default. It is necessary to correct
 Testing Functionality of Scrambler(s)
 ====================================
 
-27. change effective user to scrib: **sudo su scrib**
-28. create a folder for Scrambler tools - **mkdir /home/scrib/tools**; go to the new folder **cd /home/scrib/tools**
-29. upload tools from GitHub: ** svn checkout https://github.com/smartcrib/password-scrambler-ws/trunk/ScramblerTools .**
-30. if your Scrambler is plugged to the Raspberry, run **python sc_driver.py**; you should see status information about the Scrambler, something like:
+28. change effective user to scrib: **sudo su scrib**
+29. create a folder for Scrambler tools - **mkdir /home/scrib/tools**; go to the new folder **cd /home/scrib/tools**
+30. upload tools from GitHub: ** svn checkout https://github.com/smartcrib/password-scrambler-ws/trunk/ScramblerTools .**
+31. if your Scrambler is plugged to the Raspberry, run **python sc_driver.py**; you should see status information about the Scrambler, something like:
    - List of connected devices:
    - Smart Crib:Scrambler:00000000
    -    Device ID: 00000000; API STATUS: (ID: 0102030000000000, CLUSTER: 8mxaN*_d13, COUNTER: 00000001, LOCKED: 1.

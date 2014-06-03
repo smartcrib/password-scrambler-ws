@@ -71,8 +71,7 @@ def checkRemote(command, address):
         pass
     else:
         if (address!='localhost') and (address!="127.0.0.1"):
-            pass
-            # raise ValueError("ERR202Request not allowed from this client (%s)" %address)
+            raise ValueError("ERR202 Request not allowed from this client (%s)" %address)
         else:
             pass
 
