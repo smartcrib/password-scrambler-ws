@@ -24,7 +24,7 @@ Preparing Raspberry Pi
 4. setup firewall so yo don't get locked out
    - **sudo apt-get install -y screen**  
    - **sudo screen -S firewall**
-   - **while true; do sudo ufw allow from 192.168.1.0/24; ufw enable --forse-enable; sleep 60; done**
+   - **while true; do sudo ufw allow from 192.168.1.0/24; ufw enable --force-enable; sleep 60; done**
    - detach with ctrl+a d
 5. setup firewall ports
     - **sudo ufw allow 22**
