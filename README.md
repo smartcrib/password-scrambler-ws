@@ -9,7 +9,7 @@ This implementation has been tested with Raspberry Pi with Raspbian. Monit scrip
 
 We hope to be able to provide image for Rasbian but here is a list of steps we completed to get the Scrambling service working.
 
-**When you plug Scrambler to Raspberry Pi, it will cause reset of your Raspberry. You may find useful to plug your Scrambler to a USB hub with own power supply.Alternatively, plug Scrambler to your Raspberry before powering and leave it there.** 
+**When you plug Scrambler to Raspberry Pi, it will cause reset of Raspberry Pi. You may find it useful to plug your Scrambler to a USB hub with own power supply. Alternatively, plug your Scrambler to a Raspberry Pi and leave it there while you use it.** 
 
 Preparing Raspberry Pi
 ======================
@@ -56,9 +56,8 @@ Preparing Raspberry Pi
 14. Update a configuration file for FTDI devices
     - **sudo vi /etc/udev/rules.d/99-libftdi.rules**
     ... and copy the following line to the file and save it with (ESC, :q <ENTER>)
-
- - *# FTDI Devices: FT232BM/L/Q, FT245BM/L/Q, FT232RL/Q, FT245RL/Q, VNC1L with VDPS Firmware*
- - *SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", MODE="0664", GROUP="plugdev"*
+    - *# FTDI Devices: FT232BM/L/Q, FT245BM/L/Q, FT232RL/Q, FT245RL/Q, VNC1L with VDPS Firmware*
+    - *SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", MODE="0664", GROUP="plugdev"*
 15. update udev immediately:
     - **sudo udevadm trigger** #applies the new rule immediately even on plugged devices
 16. add user 'scrib' to plugdev group so that it can read and write to Scramblers
@@ -67,7 +66,7 @@ Preparing Raspberry Pi
 18. now we need to install all Python dependences:
     - **sudo apt-get install python-crypto**
     - **sudo apt-get install python-dev**
-    - **sudo pip install gevent**
+    - **sudo pip install gevent**  #this command will cause quite a few warnings, ignore them so long as the command succeeds
     - **sudo pip install bottle**
 19. also register the initialisation scripts so they are run after boot automatically
     - **sudo update-rc.d scribrestfull defaults**
