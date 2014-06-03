@@ -9,6 +9,8 @@ This implementation has been tested with Raspberry Pi with Raspbian. Monit scrip
 
 We hope to be able to provide image for Rasbian but here is a list of steps we completed to get the Scrambling service working.
 
+**When you plug Scrambler to Raspberry Pi, it will cause reset of your Raspberry. You may find useful to plug your Scrambler to a USB hub with own power supply.Alternatively, plug Scrambler to your Raspberry before powering and leave it there.** 
+
 Preparing Raspberry Pi
 ======================
 
@@ -61,28 +63,28 @@ Preparing Raspberry Pi
     - **sudo udevadm trigger** #applies the new rule immediately even on plugged devices
 16. add user 'scrib' to plugdev group so that it can read and write to Scramblers
     - **sudo adduser scrib plugdev**
-17. now we need to install all Python dependences:
+17. you can now test functionality of your S-CRIB Scrambler - see steps at the bottom of this manual
+18. now we need to install all Python dependences:
     - **sudo apt-get install python-crypto**
-    - **sudo apt-get install**
     - **sudo apt-get install python-dev**
     - **sudo pip install gevent**
     - **sudo pip install bottle**
-18. also register the initialisation scripts so they are run after boot automatically
+19. also register the initialisation scripts so they are run after boot automatically
     - **sudo update-rc.d scribrestfull defaults**
     - **sudo update-rc.d scribmanager defaults**
     - **sudo update-rc.d scribrestfull enable**
     - **sudo update-rc.d scribmanager enable**
-19. now you can start the service manually:
+20. now you can start the service manually:
     - **sudo /etc/init.d/scribrestfull start**
     - **sudo /etc/init.d/scribmanager start**
 
 Enabling HTTPS
 ==============
-20. Install a web server that supports HTTPS
+21. Install a web server that supports HTTPS
     - **sudo apt-get install python-cherrypy3**
-21. Install OpenSSL for Python
+22. Install OpenSSL for Python
     - **sudo apt-get install python-openssl**
-22. Create a certificate and a private key - the command will ask you for some details - we show input for our test
+23. Create a certificate and a private key - the command will ask you for some details - we show input for our test
     - **sudo openssl req -new -x509 -keyout scrambler.pem -out scrambler.pem -days 3650 -nodes**
     -   Country Name (2 letter code) [AU]:GB
     -   State or Province Name (full name) [Some-State]:Cambridgesire
@@ -94,10 +96,19 @@ Enabling HTTPS
     - make sure the owner and privileges on the scrambler.pem file are correct
     - **sudo chown scrib:scrib scrambler.pem** #when you change the file name, update the scribREST.py file as well
     - **sudo chmod 0400 scrambler.pem**
-23. Open scribREST.py, find _ENABLE_SSL and set it to True
-24. Try to restart the service, alternatively reboot the host computer
+24. Open scribREST.py, find _ENABLE_SSL and set it to True
+25. Try to restart the service, alternatively reboot the host computer
 
 NOTE: Python would not verify certificate by default. It is necessary to correctly handle HTTPS connections and at least verify the hostname. We will amend documentation with this issue shortly.
+
+
+Testing Functionality of Scrambler(s)
+====================================
+
+26. change effective user to scrib: **sudo su scrib**
+27. create a folder for Scrambler tools - **mkdir /home/scrib/tools**; go to the new folder **cd /home/scrib/tools**
+28. upload tools from GitHub: ** svn checkout https://github.com/smartcrib/password-scrambler-ws/trunk/ScramblerTools .**
+29. if your Scrambler is plugged to the Raspberry, run **python sc_driver.py**; you should see status information about the Scrambler
 
 
 Initial Configuration of Scramblers
