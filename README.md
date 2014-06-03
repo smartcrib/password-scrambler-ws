@@ -44,7 +44,7 @@ Preparing Raspberry Pi
     - **sudo chmod 755 /etc/init.d/scribmanager**
     - **sudo chmod 755 /etc/init.d/scribrestfull**
 9. make 2 main Python scripts executable as well
-    - **sudo chmod 755 /home/scrib/scribTCPServer.py**
+    - **sudo chmod 755 /home/scrib/scribTCP.py**
     - **sudo chmod 755 /home/scrib/scribREST.py**
 10. install some more tools
     - **sudo apt-get install python-pip**
