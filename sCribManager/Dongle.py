@@ -14,7 +14,7 @@ through pylibftdi library - project sCribManager - Python."""
 from Crypto.Cipher import AES
 import binascii
 import time
-from pylibftdi import Device
+from pylibftdi import Driver
 #import sys
 
 
@@ -187,7 +187,43 @@ class Dongle(object):
             return True
         else:
             return False
-    
+
+    ''' 
+       Returns a list of tuples:
+        - first item: a colon-separated vendor:product:serial summary of detected devices
+        - second item: serial number - HWID
+    ''' 
+    def listDevices(self):
+
+        dev_list = []
+        dev_dict = {}
+        devices = None
+        try:
+            #FTDI returns a list of triplets - (vendor, name, HWID)
+            devices =  Driver().list_devices()
+        except AttributeError, e:
+            # ERR_ENUMERATE ERR403
+            print("Error when enumerating devices - Attribute Error (%s)"%e)
+            if  not devices:
+                return None
+        except :
+            # ERR_DRIVER ERR404
+            print("It is not possible to list devices. Make sure the correct driver is assigned to S-Crib Scrambler (%s)"%sys.exc_info()[0])
+            if not devices:
+                return None
+
+        # expected response is an empty list - None may mean an error
+        if not devices:
+            return None
+
+        for device in devices:
+            device = map(lambda x: x.decode('latin1'), device)
+            vendor, product, serial = device
+            dev_list.append(("%s:%s:%s" % (vendor, product, serial),serial))
+            dev_dict[serial] = 1
+        return (dev_list, dev_dict)
+
+
     def _encrypt(self, message, passphrase):
         # passphrase MUST be 16, 24 or 32 bytes long, how can I do that ?
         IV =  "\x00" * self._BLOCK_SIZE

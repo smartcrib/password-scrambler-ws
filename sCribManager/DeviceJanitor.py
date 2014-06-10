@@ -12,10 +12,9 @@
 @status: Test
 '''
 
-from threading import Thread
-from pylibftdi import Driver
 import time
 import sys
+from threading import Thread
 from DeviceRecord import DeviceRecord
 from sCribDirectory import sCribDirectory
 from Dongle import Dongle
@@ -37,13 +36,15 @@ class DeviceJanitor(Thread):
         while True:
             # we enumerate for new devices
             self._devices.purge()
+            deviceList = None
             try:
-                (devices, dev_dictNew) = self.getDeviceList()
+                deviceList = self.getDeviceList()
             except:
                 #ERR407
                 print("Error during getDeviceList() - unplugging")
                 continue
             
+            (devices, dev_dictNew) = deviceList
             for key in dev_dictOld:
                 if not (key in dev_dictNew):
                     # we remove the device
@@ -88,28 +89,12 @@ class DeviceJanitor(Thread):
         return a list of lines, each a colon-separated
         vendor:product:serial summary of detected devices
         """
-        dev_list = []
-        dev_dict = {}
-        devices = None
-        try:
-            devices =  Driver().list_devices()
-        except AttributeError, e:
-            # ERR_ENUMERATE ERR403
-            print("Error when enumerating devices - Attribute Error (%s)"%e)
-            if  not devices:
-                return None
-        except :
-            # ERR_DRIVER ERR404
-            print("It is not possible to list devices. Make sure the correct driver is assigned to S-Crib Scrambler (%s)"%sys.exc_info()[0])
-            if not devices:
-                return None
-        
-        for device in devices:
-            device = map(lambda x: x.decode('latin1'), device)
-            vendor, product, serial = device
-            dev_list.append(("%s:%s:%s" % (vendor, product, serial),serial))
-            dev_dict[serial] = 1
-        return (dev_list, dev_dict)
+        devices =  Dongle().listDevices()
+        if devices is None:
+            print('No devices connected.')
+            return ([], [])
+        else:
+            return devices
 
 
     def newDevice(self,deviceName):

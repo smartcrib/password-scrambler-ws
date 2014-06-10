@@ -88,18 +88,20 @@ class sCribDirectory(object):
         queues[device.getCluster()]['counter'] += 2
         return True
     '''
-    
+    Remove devices that have been unplugged or are not available.
+    We will purge such from all janitor data structures. 
     '''
     def purge(self):
         keys = self._Devices.keys()
         for key in keys:
             if key in self._Devices:
-                if self._Devices[key]['device'].remove(): #it is the dictionary is empty
+                # test if the device should be removed = it was unplugged
+                if self._Devices[key]['device'].remove(): #its queue is Null 
                     #remove the device
                     cluster = self._Devices[key]['cluster']
                     hwid = self._Devices[key]['hwid']
-                    del self._DevicesHW[hwid]
-                    del self._Devices[key]
+                    del self._DevicesHW[hwid] #remove from list of HW ids
+                    del self._Devices[key] # remove from list of IDs
                     #find the device in the cluster
                     found = False
                     for device in range(len(self._Clusters[cluster])):
