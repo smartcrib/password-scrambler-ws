@@ -35,7 +35,7 @@ class DeviceRecord(Thread):
             
         if (self._dongle.CLUSTER() is None) or (self._dongle.HWID is None) or (self._dongle.ID is None):
             #ERR124
-            print("Creating DeviceRecord with non-functional hardware dongle - unplugged")
+            print("Creating DeviceRecord with non-functional hardware dongle - unplugged: %s %s %s"%(self._dongleID, self._dongleHWID, self._clusterID))
             return None
         
         self._status = 0

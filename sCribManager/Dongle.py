@@ -14,8 +14,7 @@ through pylibftdi library - project sCribManager - Python."""
 from Crypto.Cipher import AES
 import binascii
 import time
-from pylibftdi import Driver
-#import sys
+from pylibftdi import Driver,Device
 
 
 class Dongle(object):
@@ -147,6 +146,7 @@ class Dongle(object):
         self._errorMSg = ""
         self._stick = None
         if deviceId == "":
+            print("Dongle constructor - no deviceID provided.")
             pass #self.stick = Device(mode = "t")
         else:
             try:
@@ -154,6 +154,7 @@ class Dongle(object):
                 self._stick.baudrate = 76800
                 self._stick.open()
             except:
+                print("Dongle constructor - error when opening %s - %s"%(deviceId, sys.exc_info()[0]))
                 if self._stick:
                     self._stick.close()
                 self._stick = None
