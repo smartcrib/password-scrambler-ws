@@ -15,7 +15,7 @@ from Crypto.Cipher import AES
 import binascii
 import time
 from pylibftdi import Driver,Device
-
+import sys
 
 class Dongle(object):
     '''
@@ -151,8 +151,11 @@ class Dongle(object):
         else:
             try:
                 self._stick = Device(device_id=deviceId,mode = "t")
-                self._stick.baudrate = 76800
                 self._stick.open()
+                #one call of the baudrate setter does not always work 
+                self._stick.baudrate = 3000000
+                self._stick.baudrate = 3000000
+                self._stick.baudrate = 3000000
             except:
                 print("Dongle constructor - error when opening %s - %s"%(deviceId, sys.exc_info()[0]))
                 if self._stick:
