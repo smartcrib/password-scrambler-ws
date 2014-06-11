@@ -155,9 +155,7 @@ class Dongle(object):
                 self._stick = Device(device_id=deviceId,mode = "t")
                 self._stick.open()
                 #one call of the baudrate setter does not always work 
-                print self._stick.baudrate
                 self._stick.baudrate = 3000000
-                print self._stick.baudrate
                 self._stick.baudrate = 3000000
                 self._stick.baudrate = 3000000
             except:
