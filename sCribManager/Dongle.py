@@ -16,6 +16,7 @@ import binascii
 import time
 from pylibftdi import Driver,Device
 import sys
+import traceback
 
 class Dongle(object):
     '''
@@ -147,13 +148,16 @@ class Dongle(object):
         self._stick = None
         if deviceId == "":
             print("Dongle constructor - no deviceID provided.")
+            traceback.print_stack()
             pass #self.stick = Device(mode = "t")
         else:
             try:
                 self._stick = Device(device_id=deviceId,mode = "t")
                 self._stick.open()
                 #one call of the baudrate setter does not always work 
+                print self._stick.baudrate
                 self._stick.baudrate = 3000000
+                print self._stick.baudrate
                 self._stick.baudrate = 3000000
                 self._stick.baudrate = 3000000
             except:
@@ -196,8 +200,9 @@ class Dongle(object):
        Returns a list of tuples:
         - first item: a colon-separated vendor:product:serial summary of detected devices
         - second item: serial number - HWID
-    ''' 
-    def listDevices(self):
+    '''
+    @staticmethod  
+    def listDevices():
 
         dev_list = []
         dev_dict = {}
