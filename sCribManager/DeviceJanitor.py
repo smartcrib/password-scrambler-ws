@@ -43,7 +43,7 @@ class DeviceJanitor(Thread):
                 #ERR407
                 print("Error during getDeviceList() - unplugging")
                 continue
-            
+           
             (devices, dev_dictNew) = deviceList
             for key in dev_dictOld:
                 if not (key in dev_dictNew):
@@ -57,7 +57,7 @@ class DeviceJanitor(Thread):
                 for device in devices:
                     # this creates a class instance for a new dongle - if it's a new one
                     if not self._devices.exists(device[1]): # this and next line - not clean, eventually rewrite
-                        newRecord =self.newDevice(device[1])
+                        newRecord = self.newDevice(device[1])
                         if newRecord:
                             if self._devices.add(newRecord, self._queues): # only continue if adding worked
                                 # assign a queue to the device
@@ -78,7 +78,7 @@ class DeviceJanitor(Thread):
             else:
                 pass # end of if devices:       
             # Sleep for a pre-defined time
-            print('%s sleeping fo %d seconds...' % (self.getName(), self._janitorPeriod))
+            print('%s sleeping for %d seconds...' % (self.getName(), self._janitorPeriod))
             time.sleep(self._janitorPeriod)
 
     def getDevices(self, cluster):
@@ -89,7 +89,7 @@ class DeviceJanitor(Thread):
         return a list of lines, each a colon-separated
         vendor:product:serial summary of detected devices
         """
-        devices =  Dongle().listDevices()
+        devices =  Dongle.listDevices()
         if devices is None:
             print('No devices connected.')
             return ([], [])
