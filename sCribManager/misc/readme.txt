@@ -1,6 +1,6 @@
 scribREST - outward looking RESTful service, opens internal TCP connection for 
 
-scribTCPServer - TCP incoming requests from top layer; accepts requests, create instances of Handler with callbacks
+scribManager - TCP incoming requests from top layer; accepts requests, create instances of Handler with callbacks
 QueueManager - accepts requests and passes them on to appropriate queues of requests 
 DeviceRecord - class for storing information about hardware device, it also runs a thread for each device, that checks the
        queue of requests and forwards requests to its device for processing
@@ -17,7 +17,7 @@ sCribDirectory - directory of all devices, and their clusters
 
 
 START
-1. scribTCPServer is started and it spawns TCPServer and QueueManager
+1. scribManager is started and it spawns TCPServer and QueueManager
 2. TCPServer gets ready for requests from rest (outbound facing restfull API)
 3. QueueManager creates a storage class Queues() starts DeviceJanitor()
 4. QueueManager is ready to accept data from TCPServer()
@@ -36,7 +36,7 @@ INSTALL - LINUX
 6. set access rights for files
      sudo chmod 755 /etc/init.d/scribmanager
      sudo chmod 755 /etc/init.d/scribrestfull
-     sudo chmod 755 /home/scrib/scribTCPServer.py
+     sudo chmod 755 /home/scrib/scribManager.py
      sudo chmod 755 /home/scrib/scribREST.py
 
    and make sure all files in /home/scrib are owned by user scrib

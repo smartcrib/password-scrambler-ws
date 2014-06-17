@@ -10,9 +10,9 @@
 # Description: Internal Manager for S-CRIB Scramblers
 ### END INIT INFO
 
-DAEMON="/home/scrib/scribTCP.py"
+DAEMON="/home/scrib/scribManager.py"
 DAEMONUSER="scrib"
-DAEMON_NAME="scribTCP.py"
+DAEMON_NAME="scribManager.py"
 
 PATH="/sbin:/bin:/usr/sbin:/usr/bin"
 
