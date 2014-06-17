@@ -96,7 +96,7 @@ class sCribDirectory(object):
         for key in keys:
             if key in self._Devices:
                 # test if the device should be removed = it was unplugged
-                if self._Devices[key]['device'].remove(): #its queue is Null 
+                if self._Devices[key]['device'].unplugged(): #its queue is Null 
                     #remove the device
                     cluster = self._Devices[key]['cluster']
                     hwid = self._Devices[key]['hwid']

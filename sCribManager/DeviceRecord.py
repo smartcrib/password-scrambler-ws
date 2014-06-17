@@ -14,6 +14,7 @@
 from time import sleep
 from threading import Lock
 from threading import Thread
+from shmLogging import log_trace, log_use
 
 class DeviceRecord(Thread):
     '''
@@ -30,12 +31,12 @@ class DeviceRecord(Thread):
             self._clusterID = self._dongle.CLUSTER()
         except:
             #ERR125
-            print("Creating DeviceRecord with invalid dongle class")
+            log_trace('E', '0052', "Device record constructor error", ID=self._dongleID, HWID=self._dongleHWID, cluster=self._clusterID)
             return None
             
         if (self._dongle.CLUSTER() is None) or (self._dongle.HWID is None) or (self._dongle.ID is None):
             #ERR124
-            print("Creating DeviceRecord with non-functional hardware dongle - unplugged: %s %s %s"%(self._dongleID, self._dongleHWID, self._clusterID))
+            log_trace('E', '0053', "Hardware malfunction", ID=self._dongleID, HWID=self._dongleHWID, cluster=self._clusterID)
             return None
         
         self._status = 0
@@ -48,22 +49,27 @@ class DeviceRecord(Thread):
         self._initLock = Lock()
 
         self._initLock.acquire() # lock the object until a queue is assigned to it
-        print("A device %s (HW ID: %s) created - cluster %s"%(self._dongleID, self._dongleHWID, self._clusterID)) 
+        log_trace('I', '0054', "New device registered", ID=self._dongleID, HWID=self._dongleHWID, cluster=self._clusterID)
         Thread.__init__(self)
     
     def getID(self):
+        log_trace('D', '0055', "getID() called", ID=self._dongleID)
         return self._dongleID
     
     def getCluster(self):
+        log_trace('D', '0056', "getCluster() called", ID=self._dongleID)
         return self._clusterID
     
     def getHWID(self):
+        log_trace('D', '0057', "getHWID() called", ID=self._dongleID)
         return self._dongleHWID
     
     def getStatus(self):
+        log_trace('D', '0058', "getStatus() called", ID=self._dongleID)
         return not self._firstCmd
     
-    def remove(self):
+    def unplugged(self):
+        log_trace('D', '0059', "unplugged() called", ID=self._dongleID)
         return not self._queue
     
     def reopen(self):
@@ -78,6 +84,7 @@ class DeviceRecord(Thread):
             self._queue['control'].acquire()
             if self._queue['requests'] is None:
                 self._cluster['control'].release()
+                log_trace('D', '0060', "Queue empty and destroyed", ID=self._dongleID)
                 break # we will close, queue is empty and destroyed
             else:
                 if (self._queue['length'] > 0) and (self._queue['requests']): # both conditions to check integrity
@@ -86,16 +93,14 @@ class DeviceRecord(Thread):
                     self._queue['counter'] += 1
                     self._queue['control'].release()
                     # process
-                    
-                    print("Request %s to be sent to device %s" %(task['request'], self._dongleID))
+                    log_trace('D', '0061', "Request sent to device", ID=self._dongleID, task=task['request'])
                     response = self._dongle.process(task['request'])
                     if response:
                         task['response'] = response
-                        print("Request %s processed by device %s" % (task['request'], self._dongleID))
-
+                        log_trace('D', '0062', "request processed by device", ID=self._dongleID, task=task['request'])
                         task['callback'](True, response) # this will free a lock in the TCP server thread
                     else:
-                        print("Request %s failed by device %s" % (task['request'], self._dongleID))
+                        log_trace('I', '0063', "Request processing failed", ID=self._dongleID, task=task['request'])
                         #device does not respond
                         self._queue['control'].acquire()
                         self._queue['requests'].append(task) #return the task back to the queue
@@ -108,17 +113,18 @@ class DeviceRecord(Thread):
 
                     if (self._queue['length'] > 0) or (self._queue['requests']): # both conditions to check integrity
                         self._queue['control'].release()
-                        raise ValueError('Integrity error in cluster %s'%self._clusterID)
+                        log_trace('C', '0064', "Queue integrity test failed", cluster=self._clusterID, ID=self._dongleID, task=task['request'], length=self._queue['length'], requests=self._queue['requests'])
                     else:
+                        #the queue is empty, wait 100ms before doing another check
                         self._queue['control'].release()
                         sleep(0.10)
-        print("A device %s is exiting" % self._dongleID)
-      
+        log_trace('I', '0065', "Device is being removed", ID=self._dongleID, cluster=self._clusterID)
+     
+ 
     def assignQueue(self, queue, cluster):
         self._queue = queue
         self._cluster = cluster
         self._initLock.release()
-        print("A queue assigned to device %s (length is %d)" %(self.getID(), queue['length']))
+        log_trace('I', '0066', "Device assigned to a queue", ID=self._dongleID, cluster=self._clusterID, length=queue['length'])
 
 
-        

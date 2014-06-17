@@ -15,6 +15,7 @@
 import time
 import sys
 from threading import Thread
+from shmLogging import log_trace, log_use
 from DeviceRecord import DeviceRecord
 from sCribDirectory import sCribDirectory
 from Dongle import Dongle
@@ -30,7 +31,7 @@ class DeviceJanitor(Thread):
     
 
     def run(self):
-        print('Janitor started')
+        log_trace('I', '0039', "Janitor started", detail="n/a")
         dev_dictOld = {}
         dev_dictNew = {}
         while True:
@@ -41,7 +42,7 @@ class DeviceJanitor(Thread):
                 deviceList = self.getDeviceList()
             except:
                 #ERR407
-                print("Error during getDeviceList() - unplugging")
+                log_trace('I', '0040', "Error during getDeviceList() - unplugging", detail="n/a")
                 continue
            
             (devices, dev_dictNew) = deviceList
@@ -68,9 +69,9 @@ class DeviceJanitor(Thread):
                                 thread = Thread(target = newRecord.execute)
                                 thread.start()
                             else:
-                                print("Device unplugged while being added - deviceJanitor.run() - %s"%device[1])
+                                log_trace('W', '0041', "Device unplugged while being added", device=device[1])
                         else:
-                            print("Device unplugged when being initialised %s"%device[1])
+                            log_trace('W', '0042', "Device unplugged while being initialised", device=device[1])
                             #ERR119
                     else:
                         #self._devices.reopen(device[1])
@@ -78,10 +79,12 @@ class DeviceJanitor(Thread):
             else:
                 pass # end of if devices:       
             # Sleep for a pre-defined time
-            print('%s sleeping for %d seconds...' % (self.getName(), self._janitorPeriod))
+            log_trace('D', '0043', "Janitor sleeping", process=self.getName(), interval=self._janitorPeriod)
             time.sleep(self._janitorPeriod)
+            log_trace('D', '0044', "Janitor wakes", process=self.getName())
 
     def getDevices(self, cluster):
+        log_trace('I', '0045', "getDevices() called", detail="n/a")
         return self._devices.getClusterDevices(cluster)
 
     def getDeviceList(self):
@@ -91,7 +94,7 @@ class DeviceJanitor(Thread):
         """
         devices =  Dongle.listDevices()
         if devices is None:
-            print('No devices connected.')
+            log_trace('I', '0046', "No devices connected", detail="n/a")
             return ([], [])
         else:
             return devices
@@ -103,15 +106,16 @@ class DeviceJanitor(Thread):
         try:
             stick = Dongle(deviceName) #create the hardware
             if (stick):
-                dongle = DeviceRecord(stick) # add hardware to DeviceRecord
+                dongle = DeviceRecord(stick) # add hardware to DeviceRecord 
+                log_trace('I', '0047', "New device added", name=deviceName)
                 return dongle
             else:
-                print("The device cannot be identified - ID(), CLUSTER()")
+                log_trace('I', '0048', "New device cannot be identified (ID, CLUSTER)", name=deviceName)
                 # ERR_EXCEPTION ERR401
                 return None
         except TypeError, e:
             # dongle not created
-            print("No device created %s", e)
+            log_trace('E', '0049', "Exception while adding device", name=deviceName, exception=e)
             # ERR_MALFUNCTION ERR402
             return None
         
@@ -120,8 +124,9 @@ class DeviceJanitor(Thread):
         '''
         Constructor - the first device enumeration
         '''
+        log_trace('D', '0050', "Janitor's constructor entered", detail="n/a")
         self._devices = sCribDirectory()
         self._queues = queues
             
         Thread.__init__(self)
-        
+        log_trace('I', '0051', "Janitor initialised", detail="n/a")
