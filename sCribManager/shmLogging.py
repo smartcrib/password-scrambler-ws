@@ -53,19 +53,19 @@ _U = StructuredMessageUsage
 
 
 def log_use(code, operation, user, source, **kwargs):
-    logger_use.info(_U(code+"USE", operation, user, source, kwargs))
+    logger_use.info(_U(code+"USE", operation, user, source, **kwargs))
 
 def log_trace(level, code, message, **kwargs):
     if level=="I":
         logger_trace.info(_T(code+"INF", message, **kwargs))
     elif level=="D":
-        logger_trace.debug(_T(code+"DBG", message, kwargs))
+        logger_trace.debug(_T(code+"DBG", message, **kwargs))
     elif level=="W":
-        logger_trace.warning(_T(code+"WRN", message, kwargs))
+        logger_trace.warning(_T(code+"WRN", message, **kwargs))
     elif level=="E":
-        logger_trace.error(_T(code+"ERR", message, kwargs))
+        logger_trace.error(_T(code+"ERR", message, **kwargs))
     elif level=="C":
-        logger_trace.critical(_T(code+"CRI", message, kwargs))
+        logger_trace.critical(_T(code+"CRI", message, **kwargs))
     else:
         logger_trace.error(_T('0038ERR', "Incorrect format of log event", level=level, code=code))
 
