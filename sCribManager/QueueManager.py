@@ -12,6 +12,7 @@
 @email: info@s-crib.com
 @status: Test
 '''
+from shmLogging import log_trace, log_use
 from DeviceJanitor import DeviceJanitor
 from threading import Thread
 import time
@@ -63,10 +64,11 @@ class QueueManager(Thread):
         self._shuttingNow = False   # this means- no more processing, just finish current request
         self._watch = None
         self.janitorClass = DeviceJanitor(self._Queues)
+        log_trace('I', '0036', "Janitor created", detail="n/a")
         self.janitor = Thread(target=self.janitorClass.run)
         #self.janitor.daemon = True
         self.janitor.start()
-        
+        log_trace('I','0037', "Janitor started", detail="n/a") 
 
     
     def _parseRequest(self, requestString):
@@ -131,8 +133,9 @@ class QueueManager(Thread):
         ''' 
         Simple add to a queue for the given cluster
         '''
-        print("QueueManager - New request received %s"%requestString)
+        log_trace("D",'0017', "QueueManager received request", detail=requestString)
         if not self._running:
+            log_trace("C", '0018', "QueueManager not running", command=requestString)
             return False
         
         # test we are still running
@@ -141,20 +144,23 @@ class QueueManager(Thread):
             if self._parseRequest(requestString):
                 (clusterID, request) = self.getRequestCluster(requestString)
                 if clusterID is None:
-                    print("The API key is incorrect - request %s" % requestString)
+                    log_trace("I", '0020', "Request with incorrect clusterID", command=requestString, err="ERR207")
                     callback_function(False, "ERR207")
                     return False
                 else:
                     if (self.isClusterRequest(request)):
+                        log_trace("D", '0021', "Received cluster request", detail=requestString)
                         response = self.process(clusterID, request)
                         callback_function(True, response)
                         return True
                     elif (self.isAPIRequest(request)):
+                        log_trace('D', '0022', "Received API request", detail=requestString)
                         params = request.split(' ',1)
 			command = params[0].strip()
 			callback_function(True, "ERR211 "+command+" "+params[1].strip())
                         return True
                     else:
+                        log_trace('D', '0023', "Received user request", cluster=clusterID)
                         if clusterID in self._Queues.keys():
                             self._Queues[clusterID]['control'].acquire()
                             if (not self._Queues[clusterID]['requests']):
@@ -164,15 +170,16 @@ class QueueManager(Thread):
                             self._Queues[clusterID]['control'].release()
                             return True
                         else:
-                            print("No Hardware for the cluster %s" % clusterID )
+                            log_use('0006', "No HW available", cluster =clusterID)
                             callback_function(False, "ERR115")
                             return False
                     # end of if ... else
             else:
-                print("The command has not been recognised %s" % requestString.strip())
+                log_trace('I', '0024', "Unknown command received", command=requestString)
                 callback_function(False, "ERR116")
                 return False
         else:
+            log_trace('I', '0025', "Command received when QueueManager is being shut down", command=requestString)
             callback_function(False, "ERR117") # the system is being shutdown
             return False
         
@@ -191,6 +198,7 @@ class QueueManager(Thread):
                         tasksToClear.append(taskIdx)
                 while tasksToClear:
                     taskIdx = tasksToClear.pop()
+                    log_use('0007', "Request timed out", timeout=self._TASK_TIMEOUT, command=taskIdx['request'])
                     queue['requests'][taskIdx]['callback'](False, "ERR126")
                     del queue['requests'][taskIdx]
                     queue['length'] -= 1
@@ -214,6 +222,7 @@ class QueueManager(Thread):
         
         request_bits = request.split()
         command = int(request_bits[0])
+        t_start = time.time()
         try:
             if command == 101: #'GETCLUSTERCOUNTER':'101',
                 data = self.GETCLUSTERCOUNTER(cluster)
@@ -226,10 +235,14 @@ class QueueManager(Thread):
             elif command == 105: #'GETCLUSTERDELAY':'105',
                 data = self.GETCLUSTERDELAY(cluster)
             else:
+                log_trace('I', '0027', "Unknown cluster command", command=requestString)
                 data = "ERR127"
         except:
+            log_trace('E', '0026', "Exception while processing cluster command", command=requestString)
             data = "ERR128"
-                     
+        latency = time.time() - t_start
+        log_use('0008', "Cluster command processed", command=request, time=latency)
+
         return data
 
     def GETCLUSTERCOUNTER(self, cluster):
@@ -237,6 +250,7 @@ class QueueManager(Thread):
             counter = self._Queues[cluster]['counter']
             return "%0.8X" % counter
         else:
+            log_trace('D', '0028', "Unknown cluster - GETCLUSTERCOUNTER", cluster=cluster)
             return "ERR207"
     
     def GETCLUSTERDONGLES(self, cluster):
@@ -244,12 +258,14 @@ class QueueManager(Thread):
             devices = self.janitorClass.getDevices(cluster)
             return " ".join(devices)
         else:
+            log_trace('D', '0029', "Unknown cluster - GETCLUSTERDONGLES", cluster=cluster)
             return "ERR207"
     
     def GETCLUSTERID(self, cluster):
         if cluster in self._Queues:
             return cluster
-        else:
+        else:	
+            log_trace('D', '0030', "Unknown cluster - GETCLUSTERID", cluster=cluster)
             return "ERR207"
     
     def GETCLUSTERLOCKED(self, cluster):
@@ -257,7 +273,10 @@ class QueueManager(Thread):
     
     def GETCLUSTERDELAY(self, cluster):
         return "ERR129"
-    
+   
+    '''
+    This method simply starts a new thread - queueWatch so that request can be served.
+    ''' 
     def processing(self):
         '''
         This will start serving
@@ -266,13 +285,15 @@ class QueueManager(Thread):
         #self.janitor.daemon = True
         self._watch.start()
         self._running = True
-        
-        
+        log_trace('I', '0031', "Processing - queueWatch started", detail="n/a")
         '''
         at the end - just call the callback function with the result
         '''
         
         
+    '''
+    Initiate shutdown - stop accepting requests from clients.
+    '''
     def shutdown(self):
         '''
         set the flag to signal no more requests
@@ -281,9 +302,16 @@ class QueueManager(Thread):
         '''
         Wait for all requests to be processed
         '''
+        log_trace('I', '0032', "System is shutting down - no more requests accepted", detail="n/a")
         return True
         
         
+    '''
+    Initiate hard shutdown - stop accepting requests from clients and remove all
+    requests waiting in queues.
+    '''
     def shutdownHard(self):
         self._shuttingDown = True
         self._shuttingNow = True
+        log_trace('I', '0033', "System is shutting down hard - no more requests & purge queues", detail="n/a")
+
