@@ -64,7 +64,7 @@ class sCribDirectory(object):
     def add(self, device, queues):
         log_trace('D', '0133', "Entered add()", device=device.getID()) 
         if device == None:
-            log_trace('E', '0134', "Device is not set - add()", detail="n/a"))
+            log_trace('E', '0134', "Device is not set - add()", detail="n/a")
             raise ValueError("No device specified")
         
         if device.getID() == None or device.getCluster() == None:
