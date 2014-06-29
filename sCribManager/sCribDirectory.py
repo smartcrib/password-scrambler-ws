@@ -13,6 +13,7 @@
 @status: Test
 '''
 from threading import Lock
+from shmLogging import log_trace, log_use
 
 class sCribDirectory(object):
     '''
@@ -31,16 +32,19 @@ class sCribDirectory(object):
         return self
             
     def reopen(self, device_id):
+        log_trace('D', '0129', "Entered reopen()", device=device_id)
         if (self._DevicesHW.has_key(device_id)):
             self._Devices[self._DevicesHW[device_id]]['device'].reopen()
     
     def getCluster(self, clusterID):
+        log_trace('D', '0130', "Entered getCluster()", cluster=clusterID)
         if clusterID in self._Clusters:
             return self._Clusters[clusterID]
         else:
             None  
            
     def getClusterDevices(self, clusterID):
+        log_trace('D', '0131', "Entered getClusterDevices()", cluster=clusterID)
         result = None
         if clusterID in self._Clusters:
             result = []
@@ -49,6 +53,7 @@ class sCribDirectory(object):
         return result
             
     def exists(self, device_id):
+        log_trace('D', '0132', "Entered exists()", device=device_id)
         if self._DevicesHW is None:
             return False
         elif self._DevicesHW.has_key(device_id):
@@ -57,18 +62,19 @@ class sCribDirectory(object):
             return False
             
     def add(self, device, queues):
-        
+        log_trace('D', '0133', "Entered add()", device=device.getID()) 
         if device == None:
+            log_trace('E', '0134', "Device is not set - add()", detail="n/a"))
             raise ValueError("No device specified")
         
         if device.getID() == None or device.getCluster() == None:
-            print("Cluster (%s) and Token number (%s) must be specified" %(device.getID(), device.getCluster()))
+            log_trace('E', '0135', "Device not working properly", ID=device.getID(), cluster = device.getCluster())
             #ERR120
             return False
 
         if not self._DevicesHW is None:
             if self._DevicesHW.has_key(device.getHWID()):
-                print("An entry already exists for token (%s / %s)!" %(device.getHWID(), device.getID()))
+                log_trace('C', '0136', "Device already in the directory", ID=device.getID(), HWID = device.getHWID())
                 #ERR121
                 return False
         else: #create the dictionary if it doesn't exist 
@@ -77,12 +83,15 @@ class sCribDirectory(object):
         self._DevicesHW[device.getHWID()] = device.getID()
         self._Devices[device.getID()] = {'cluster':device.getCluster(), 'device':device, 'hwid': device.getHWID()}
         self.updated = True
+        log_trace('I', '0137', "Device added to the directory", ID=device.getID(), HWID = device.getHWID(), cluster=device.getCluster())
+
         if not (device.getCluster() in self._Clusters.keys()):
             #we need to create a queue in the queues structure
             queues[device.getCluster()] = {'control': Lock(),'length': int, 'counter': int, 'requests':[]}
             queues[device.getCluster()]['length'] = 0
             queues[device.getCluster()]['counter'] = 0
             self._Clusters[device.getCluster()]=[]
+            log_trace('I', '0138', "Queue create for new device", ID=device.getID(), cluster=device.getCluster())
                                 
         self._Clusters[device.getCluster()].append({'id':device.getID(), 'device':device})
         queues[device.getCluster()]['counter'] += 2
@@ -92,11 +101,13 @@ class sCribDirectory(object):
     We will purge such from all janitor data structures. 
     '''
     def purge(self):
+        log_trace('D', '0139', "Entered purge()", detail="n/a")
         keys = self._Devices.keys()
         for key in keys:
             if key in self._Devices:
                 # test if the device should be removed = it was unplugged
                 if self._Devices[key]['device'].unplugged(): #its queue is Null 
+                    log_trace('D', '0140', "Found unplugged device - we remove it", device=key)
                     #remove the device
                     cluster = self._Devices[key]['cluster']
                     hwid = self._Devices[key]['hwid']
@@ -115,24 +126,27 @@ class sCribDirectory(object):
                         pass #del self._Clusters[cluster]        
             
     def getToken(self,name):
+        log_trace('D', '0141', "Entered getToken()", detail="n/a")
         if self._Devices.has_key(name):
             return self._Devices[name]
         else:
-            print("Name (%s) not found!" %name)
+            log_trace('E', '0142', "Device not found with the name", name=name)
             #ERR122
             return None
         
     def getName(self,token):
+        log_trace('D', '0143', "Entered getName()", device=token)
         for name,tokenNumber in self._Devices.items():
             if token == tokenNumber:
                 return name
-        print("Token (%s) not found!" %token)
+        log_trace('E', '0144', "Device not found", device=token)
         #ERR123
         return None
     
     def deleteByName(self, hwname):
-        
+        log_trace('D', '0145', "Entered deleteByName()", HWID=hwname)
         if not self._DevicesHW:
+            log_trace('E', '0146', "Name not specified", HWID=hwname)
             return
         
         if hwname in self._DevicesHW:
@@ -149,13 +163,13 @@ class sCribDirectory(object):
                     toDelete = device
             if found:
                 del self._Clusters[cluster][toDelete]
+                log_trace('I', '0147', "Device removed from cluster", ID=name, cluster=cluster)
             else:
-                print("Integrity corruption - device not in cluster %s in %s"%(name, cluster))
+                log_trace('C', '0148', "Integrity corruption - device not in cluster", ID=name, cluster=cluster)
                 #ERR118 ERR_INTEGRITY
                         
-            print("Device removed / unplugged %s from cluster %s"%(name, cluster))
             if len(self._Clusters[cluster])==0: # Shall we delete the cluster and all requests when no device is available?
-                print("Cluster %s is empty"%cluster)
+                log_trace('I', '0149', "Cluster is empty", cluster=cluster)
                 pass #del self._Clusters[cluster]            
                 
         

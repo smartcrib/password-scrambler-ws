@@ -16,6 +16,7 @@
 import pickle
 import random
 import string
+from shmLogging import log_trace, log_use
 
 class sCribClients(object):
     '''
@@ -26,6 +27,7 @@ class sCribClients(object):
         '''
         Constructor
         '''
+        log_trace('I', '0116', "sCribClients - constructor", detail="n/a")
         self._backupFile = None
         self._Directory = dict()
 
@@ -40,20 +42,24 @@ class sCribClients(object):
             self._Directory = dict()
             self.open()
             self.directoryLoaded = True
+        log_trace('I', '0117', "sCribClients - constructor completed", detail="n/a")
    
     def __enter__(self):
         return self
 
     
     def __exit__(self, *args, **kwargs):
+        log_trace('I', '0118', "sCribClients - destructor", detail="n/a")
         if self.updated:
             self.close() 
 
         
     def open(self):
         if self._backupFile is None:
+            log_trace('C', '0119', "No backup file defined for open() - sCribClients", detail="n/a")
             raise ValueError("No backup file defined for open()")
         elif self.directoryLoaded == True:
+            log_trace('E', '0120', "Directory of API clients already loaded", detail="n/a")
             raise ValueError("Directory of API clients already loaded.")
         else:
             #TODO add path check
@@ -62,20 +68,22 @@ class sCribClients(object):
                     self._Directory = pickle.load(handle)
                     self.directoryLoaded = True
             except:
-                print("File %s does not exist - open()"% self._backupFile) 
+                log_trace('I', '0121', "File does not exist - open() - we create it", filename=self._backupFile)
                 self.directoryLoaded = True
                 with open(self._backupFile, 'wb') as handle:
                     self.close()
+        
 
     def persist(self):
         if self._backupFile is None:
             return
         elif not self.directoryLoaded:
+            log_trace('C', '0124',"Directory of API clients has not be loaded yet - persist()", filename=self._backupFile) 
             raise ValueError("Directory of API clients has not be loaded yet - persist()")
         else:
             with open(self._backupFile,'wb') as handle:
                 pickle.dump(self._Directory, handle)
-            
+        log_trace('D', '0123', "Clients saved to disk file", filename=self._backupFile)    
                 
     def close(self):
         #TODO add Path check
@@ -83,10 +91,13 @@ class sCribClients(object):
         
 
     def addClient(self, clusterID):
-        print("Entered addClient()")
+        start = time.time()
+        log_trace('D', '0125', "Entered AddClient()", detail="n/a")
         if (clusterID is None):
+            log_trace('I', '0126', "No clusterID provided", cluster=clusterID)
             return "ERR209"
         elif len(clusterID)!=10:
+            log_trace('I', '0127', "Incorrect clusterID length", cluster=clusterID)
             return "ERR209"
         else:
             found = False
@@ -94,12 +105,14 @@ class sCribClients(object):
                 if self._Directory[key]['cluster'] == clusterID:
                     found = True
             if found:
+                log_trace('I', '0128', "Cluster already registered", cluster=clusterID)
                 return "ERR206" #API key exists
             else:
                 random.seed() # seed with current time only
                 apiKey = "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(48))
                 self.add(apiKey, clusterID)
-                print("an API client created: "+apiKey)
+                latency = time.time() - start
+                log_use('0020', "ADDCLIENT", clusterID, "n/a", latency=latency, apikey=apiKey)
                 return apiKey+" "+clusterID 
 
     def checkClient(self, clusterID):
